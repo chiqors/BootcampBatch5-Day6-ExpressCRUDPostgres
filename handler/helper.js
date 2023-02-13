@@ -1,24 +1,39 @@
 const contact = require('../models/contactModel')
 const validator = require('validator');
 
-async function validateName(name) {
+async function validateName(name, old_name = null) {
     const errors = []
-    // Check empty name
-    if (validator.isEmpty(name)) {
-        const flashObject = {
-            type: 'danger',
-            message: 'Name is required'
+    if (old_name === null) {
+        // Check empty name
+        if (validator.isEmpty(name)) {
+            const flashObject = {
+                type: 'danger',
+                message: 'Name is required'
+            }
+            errors.push(flashObject)
         }
-        errors.push(flashObject)
-    }
-    // Check duplicate name
-    const checkDuplicate = (await contact.getContactByName(name)).rows.length > 0 // true or false
-    if (checkDuplicate) {
-        const flashObject = {
-            type: 'danger',
-            message: 'Name is already exist'
+        // Check duplicate name
+        const checkDuplicate = (await contact.getContactByName(name)).rows.length > 0 // true or false
+        if (checkDuplicate) {
+            const flashObject = {
+                type: 'danger',
+                message: 'Name is already exist'
+            }
+            errors.push(flashObject)
         }
-        errors.push(flashObject)
+    } else {
+        // skip name validation if name is not inputted
+        if (!validator.isEmpty(name)) {
+            // Check duplicate name
+            const checkDuplicate = (await contact.getContactByName(name)).rows.length > 0 // true or false
+            if (checkDuplicate) {
+                const flashObject = {
+                    type: 'danger',
+                    message: 'Name is already exist'
+                }
+                errors.push(flashObject)
+            }
+        }
     }
     return errors
 }
@@ -49,8 +64,8 @@ async function validatePhone(phone) {
     return flashObject
 }
 
-async function validateAll(data) {
-    const checkName = await validateName(data.name)
+async function validateAll(data, old_name = null) {
+    const checkName = await validateName(data.name, old_name)
     const checkEmail = await validateEmail(data.email)
     const checkPhone = await validatePhone(data.mobile)
     let errors = []

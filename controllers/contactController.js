@@ -61,7 +61,7 @@ async function edit(req, res) {
 
 async function update(req, res) {
     const data = req.body
-    const errors = await helper.validateAll(data)
+    const errors = await helper.validateAll(data, data.old_name)
     if (errors.length > 0) {
         await req.flash('info', errors)
         const flashData = await req.consumeFlash('info')
@@ -74,6 +74,8 @@ async function update(req, res) {
             title: 'Add Contact Page'
         })
     }
+    // if data.name is undefined then use data.old_name
+    data.name = data.name || data.old_name
     await contact.updateContact(data)
     const flashObject = {
         type: 'success',
